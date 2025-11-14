@@ -14,13 +14,16 @@ describe('The Cat API - Images ↔ Votes ↔ Favourites', () => {
     let favouriteId;
     let createdVoteId;
 
+    // 1. GET IMAGE FIRST
     test('GET /images/search → obtain image_id', async () => {
         const { data } = await api.get('/images/search');
-        expect(Array.isArray(data)).toBe(true);
         receivedImageId = data[0].id;
+
+        expect(Array.isArray(data)).toBe(true);
         expect(receivedImageId).toBeDefined();
     });
 
+    // ---- FAVOURITES ----
     test('POST /favourites → add favourite', async () => {
         const { data } = await api.post('/favourites', {
             image_id: receivedImageId,
@@ -43,7 +46,7 @@ describe('The Cat API - Images ↔ Votes ↔ Favourites', () => {
         expect(found).toBeUndefined();
     });
 
-    // Votes
+    // ---- VOTES ----
     test('POST /votes → add vote', async () => {
         const { data } = await api.post('/votes', {
             image_id: receivedImageId,
@@ -55,11 +58,16 @@ describe('The Cat API - Images ↔ Votes ↔ Favourites', () => {
 
     test('GET /votes → vote exists', async () => {
         const { data } = await api.get('/votes');
-        const foundImageId = data.find(v => v.image_id === receivedImageId);
-        const foundVoteId = data.find(v => v.id === createdVoteId);
 
-        expect(foundImageId).toBeDefined();
-        expect(foundVoteId).toBeDefined();
+        // Search vote obj by image_id and id
+        const vote = data.find(vote =>
+            vote.image_id === receivedImageId &&
+            vote.id === createdVoteId
+        );
+
+        expect(vote).toBeDefined();
+        expect(vote.image_id).toBe(receivedImageId);
+        expect(vote.id).toBe(createdVoteId);
     });
 
     test('DELETE /votes → vote removed', async () => {
